@@ -56,8 +56,9 @@ export const setupLti = async () => {
 
         const idclassroom = taskLink?.idClassroom; //Id classroom
         const idtaskgithub = taskLink?.idTaskGithubClassroom; //Id tarea github
+        const orgId = taskLink?.orgId; //Id de la organizacion
         const idtaskmoodle = taskLink?.idTaskMoodle; //Id tarea moodle
-        const payload = { idclassroom, idtaskgithub, idtaskmoodle, isMoodle };
+        const payload = { idclassroom, idtaskgithub, orgId, idtaskmoodle, isMoodle };
 
         const token = jwtService.generateToken(payload, '1h');
 
