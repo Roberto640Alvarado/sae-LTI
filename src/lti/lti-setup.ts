@@ -64,7 +64,7 @@ export const setupLti = async () => {
 
         const query = new URLSearchParams({ token }).toString();
 
-        return res.redirect(`https://sae2025.netlify.app?${query}`);
+        return res.redirect(`https://sae2025.netlify.app/repositorios?${query}`);
       } else {
         console.log('Esta tarea no ha sido enlazada a una tarea de github');
         const payload = { email, isMoodle, courseId, assignmentId, issuer };
