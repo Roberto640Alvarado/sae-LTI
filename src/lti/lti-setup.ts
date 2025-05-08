@@ -41,19 +41,6 @@ export const setupLti = async () => {
     const isStudent = roles.some((r) => r.includes('#Learner'));
     const isMoodle = true;
 
-    //Obtener todos los usuarios
-    const membersUrl =
-      token.platformContext.namesRoles?.context_memberships_url;
-
-    const members = await lti.NamesAndRoles.getMembers(token, membersUrl);
-
-    for (const user of members.members) {
-      console.log('ID:', user.user_id);
-      console.log('Correo:', user.email);
-      console.log('Nombre:', user.name);
-      console.log('Rol:', user.roles); 
-    }
-
     //VALIDACIONES
 
     if (isInstructor || isAdmin) {
@@ -66,6 +53,51 @@ export const setupLti = async () => {
           assignmentId,
           issuer,
         ); //info de la tarea enlazada
+
+        //Obtenemos los miembros de la clase
+        const membersUrl =
+          token.platformContext.namesRoles?.context_memberships_url;
+        const members = await lti.NamesAndRoles.getMembers(token, membersUrl);
+
+        const estudiantes = members.members.filter((user: any) =>
+          user.roles.some((r: string) => r.includes('#Learner')),
+        );
+        const resultadoNotas: any[] = [];
+
+        const idTareaLTI = taskLink?.idTaskGithubClassroom;
+
+        if (!idTareaLTI) {
+          throw new Error(
+            'idTaskGithubClassroom no está definido en taskLink',
+          );
+        }
+
+        for (const estudiante of estudiantes) {
+          let grade = 0;
+
+          try {
+            const feedback = await ltiService.getFeedbackByEmailAndIdTaskGithub(
+              estudiante.email,
+              idTareaLTI,
+            );
+
+            if (feedback && typeof feedback.gradeValue === 'number') {
+              grade = feedback.gradeValue;
+            }
+          } catch (error) {
+            console.warn(
+              `No se encontró feedback para ${estudiante.email}, asignando nota 0`,
+            );
+          }
+
+          resultadoNotas.push({
+            userId: estudiante.user_id,
+            email: estudiante.email,
+            grade,
+          });
+        }
+
+        console.log('Resultado de notas:', resultadoNotas);
 
         const idclassroom = taskLink?.idClassroom; //Id classroom
         const idtaskgithub = taskLink?.idTaskGithubClassroom; //Id tarea github
@@ -81,9 +113,9 @@ export const setupLti = async () => {
           isMoodle,
         };
 
-        const token = jwtService.generateToken(payload, '1h');
+        const tokenM = jwtService.generateToken(payload, '1h');
 
-        const query = new URLSearchParams({ token }).toString();
+        const query = new URLSearchParams({ tokenM }).toString();
 
         console.log('OrgName:', orgName);
         console.log('OrgId:', orgId);

@@ -77,6 +77,19 @@ export class LtiValidationService {
     return feedback.idTaskGithubClassroom; //Devuelve la tarea enlazada
   }
 
+  async getFeedbackByEmailAndIdTaskGithub( email: string, idTaskGithub: string ): Promise<Feedback | null> {
+    const feedback = await this.feedbackModel.findOne({
+      email,
+      idTaskGithubClassroom: idTaskGithub,
+    });
+
+    if (!feedback) {
+      throw new Error('No se encontró el feedback para este usuario.');
+    }
+
+    return feedback; //Devuelve el feedback
+  }
+
   //Verifica si existe un usuario basado en el email
   async hasUser(email: string): Promise<boolean> {
     const user = await this.userModel.findOne({
