@@ -72,6 +72,11 @@ export const setupLti = async () => {
           );
         }
 
+        console.log('Miembros recibidos:', JSON.stringify(members, null, 2));
+        for (const user of members.members) {
+          console.log(`→ ${user.name} | Roles:`, user.roles);
+        }
+
         for (const estudiante of estudiantes) {
           let grade = 0;
 
