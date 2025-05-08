@@ -41,6 +41,19 @@ export const setupLti = async () => {
     const isStudent = roles.some((r) => r.includes('#Learner'));
     const isMoodle = true;
 
+    //Obtener todos los usuarios
+    const membersUrl =
+      token.platformContext.namesRoles?.context_memberships_url;
+
+    const members = await lti.NamesAndRoles.getMembers(token, membersUrl);
+
+    for (const user of members.members) {
+      console.log('ID:', user.user_id);
+      console.log('Correo:', user.email);
+      console.log('Nombre:', user.name);
+      console.log('Rol:', user.roles); 
+    }
+
     //VALIDACIONES
 
     if (isInstructor || isAdmin) {
@@ -59,7 +72,14 @@ export const setupLti = async () => {
         const orgId = taskLink?.orgId; //Id de la organizacion
         const orgName = taskLink?.orgName; //Nombre de la organizacion
         const idtaskmoodle = taskLink?.idTaskMoodle; //Id tarea moodle
-        const payload = { idclassroom, idtaskgithub, orgId, orgName, idtaskmoodle, isMoodle };
+        const payload = {
+          idclassroom,
+          idtaskgithub,
+          orgId,
+          orgName,
+          idtaskmoodle,
+          isMoodle,
+        };
 
         const token = jwtService.generateToken(payload, '1h');
 
@@ -68,7 +88,9 @@ export const setupLti = async () => {
         console.log('OrgName:', orgName);
         console.log('OrgId:', orgId);
 
-        return res.redirect(`https://sae2025.netlify.app/repositorios?${query}`);
+        return res.redirect(
+          `https://sae2025.netlify.app/repositorios?${query}`,
+        );
       } else {
         console.log('Esta tarea no ha sido enlazada a una tarea de github');
         const payload = { email, isMoodle, courseId, assignmentId, issuer };
@@ -94,29 +116,40 @@ export const setupLti = async () => {
         if (!hasTaskLink) {
           console.log('Esta tarea no ha sido enlazada a una tarea de github');
 
-          return res.redirect("https://sae2025.netlify.app/NoDisponible"); //Redirigir a una pagina de error,
-        }
-        else{
+          return res.redirect('https://sae2025.netlify.app/NoDisponible'); //Redirigir a una pagina de error,
+        } else {
           console.log('Esta tarea ya fue enlazada a una tarea de github');
-          const hasFeedback = await ltiService.hasFeedback(email, assignmentId, issuer);
-          if (hasFeedback){
+          const hasFeedback = await ltiService.hasFeedback(
+            email,
+            assignmentId,
+            issuer,
+          );
+          if (hasFeedback) {
             console.log('Este usuario ya tiene feedback en esta tarea');
 
-            const idTaskClassroom = await ltiService.getTaskLinkByMoodleTask(assignmentId, issuer); //Id de la tarea de classroom
+            const idTaskClassroom = await ltiService.getTaskLinkByMoodleTask(
+              assignmentId,
+              issuer,
+            ); //Id de la tarea de classroom
             const payload = { email, isMoodle, idTaskClassroom, name };
             const token = jwtService.generateToken(payload, '1h');
             const query = new URLSearchParams({ token }).toString();
-            return res.redirect(`https://sae2025.netlify.app/feedback?${query}`);            
-          }
-          else{
+            return res.redirect(
+              `https://sae2025.netlify.app/feedback?${query}`,
+            );
+          } else {
             console.log('Este usuario no tiene feedback en esta tarea');
-            const urlInvitation = await ltiService.getInvitationUrlByMoodleTask(assignmentId,issuer); 
-            const payload = { isMoodle, urlInvitation, name }; 
+            const urlInvitation = await ltiService.getInvitationUrlByMoodleTask(
+              assignmentId,
+              issuer,
+            );
+            const payload = { isMoodle, urlInvitation, name };
             const token = jwtService.generateToken(payload, '1h');
             const query = new URLSearchParams({ token }).toString();
-            return res.redirect(`https://sae2025.netlify.app/invitacion?${query}`); 
-          } 
-
+            return res.redirect(
+              `https://sae2025.netlify.app/invitacion?${query}`,
+            );
+          }
         }
       }
     }
