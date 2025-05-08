@@ -65,6 +65,9 @@ export const setupLti = async () => {
 
         const query = new URLSearchParams({ token }).toString();
 
+        console.log('OrgName:', orgName);
+        console.log('OrgId:', orgId);
+
         return res.redirect(`https://sae2025.netlify.app/repositorios?${query}`);
       } else {
         console.log('Esta tarea no ha sido enlazada a una tarea de github');
