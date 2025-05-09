@@ -87,10 +87,6 @@ export class LtiValidationService {
       throw new Error('No se encontró el feedback para este usuario.');
     }
 
-    console.log('Correos:', email);
-    console.log('ID de tarea de Github:', idTaskGithub);
-    console.log('Feedback encontrado:', feedback);
-
     return feedback; //Devuelve el feedback
   }
 

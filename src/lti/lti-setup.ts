@@ -119,9 +119,9 @@ export const setupLti = async () => {
           isMoodle,
         };
 
-        const tokenM = jwtService.generateToken(payload, '1h');
+        const tokenM  = jwtService.generateToken(payload, '1h');
 
-        const query = new URLSearchParams({ tokenM }).toString();
+        const query = new URLSearchParams({ token: tokenM }).toString();
 
         console.log('OrgName:', orgName);
         console.log('OrgId:', orgId);
