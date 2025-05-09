@@ -77,7 +77,7 @@ export const setupLti = async () => {
           console.log(`→ ${user.name} | Roles:`, user.roles);
         }
 
-        for (const estudiante of estudiantes) {
+        for (const estudiante of members.members) {
           let grade = 0;
 
           try {
