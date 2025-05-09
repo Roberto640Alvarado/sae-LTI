@@ -88,6 +88,7 @@ export const setupLti = async () => {
 
             if (feedback && typeof feedback.gradeValue === 'number') {
               grade = feedback.gradeValue;
+              console.log('Correo:', estudiante.email, 'Nota:', grade);
             }
           } catch (error) {
             console.warn(
