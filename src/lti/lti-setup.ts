@@ -60,12 +60,19 @@ export const setupLti = async () => {
         const members = await lti.NamesAndRoles.getMembers(token, membersUrl);
 
         const estudiantes = members.members.filter((user: any) =>
-          user.roles.some((r: string) => r.includes('#Learner')),
+          user.roles.some((role: string) =>
+            role.endsWith('#Learner') || role === 'Learner'
+          )
         );
 
         console.log('Miembros de la clase:', members);
         for (const user of members.members) {
           console.log(`→ ${user.name} | Roles:`, user.roles);
+        }
+
+        console.log('Estudiantes:', estudiantes);
+        for (const estudiante of estudiantes) {
+          console.log('🎓 Estudiante:', estudiante.name, '| Email:', estudiante.email);
         }
 
         const idTareaLTI = taskLink?.idTaskGithubClassroom;
