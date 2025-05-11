@@ -62,23 +62,25 @@ export const setupLti = async () => {
         const estudiantes = members.members.filter((user: any) =>
           user.roles.some((r: string) => r.includes('#Learner')),
         );
-        const resultadoNotas: any[] = [];
+
+        console.log('Miembros de la clase:', members);
+        for (const user of members.members) {
+          console.log(`→ ${user.name} | Roles:`, user.roles);
+        }
 
         const idTareaLTI = taskLink?.idTaskGithubClassroom;
-
         if (!idTareaLTI) {
           throw new Error(
             'idTaskGithubClassroom no está definido en taskLink',
           );
         }
+        console.log('id de Tarea de Github:', idTareaLTI);
 
-        console.log('Miembros recibidos:', JSON.stringify(members, null, 2));
-        for (const user of members.members) {
-          console.log(`→ ${user.name} | Roles:`, user.roles);
-        }
+        const resultadoNotas: any[] = [];
 
         for (const estudiante of estudiantes) {
           let grade = 0;
+          let gradeFeedback = 0;
 
           try {
             const feedback = await ltiService.getFeedbackByEmailAndIdTaskGithub(
@@ -88,7 +90,8 @@ export const setupLti = async () => {
 
             if (feedback && typeof feedback.gradeValue === 'number') {
               grade = feedback.gradeValue;
-              console.log('Correo:', estudiante.email, 'Nota:', grade);
+              gradeFeedback = feedback.gradeFeedback;
+              console.log('Correo:', estudiante.email, 'Nota:', grade, 'Nota feedback:', gradeFeedback);
             }
           } catch (error) {
             console.warn(
