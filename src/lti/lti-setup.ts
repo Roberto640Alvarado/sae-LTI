@@ -4,7 +4,6 @@ import * as dotenv from 'dotenv';
 import { LtiValidationService } from './lti-validation.service';
 import { JwtService } from '../jwt/jwt.service';
 import express from 'express';
-const app = lti.app;
 
 dotenv.config();
 
@@ -147,6 +146,12 @@ export const setupLti = async () => {
     }
   });
 
+
+  const port = parseInt(process.env.PORT || '3005', 10);
+  await lti.deploy({ port });
+  console.log(`✓ LTI escuchando en el puerto ${port}`);
+
+  const app = lti.app;
   app.post('/send-grades', async (req, res) => {
     const { assignmentId, issuer } = req.body;
     const token = await lti.getToken({ iss: issuer, contextId: assignmentId });
@@ -232,10 +237,6 @@ export const setupLti = async () => {
       return res.status(500).json({ message: 'Error interno' });
     }
   });
-
-  const port = parseInt(process.env.PORT || '3005', 10);
-  await lti.deploy({ port });
-  console.log(`✓ LTI escuchando en el puerto ${port}`);
 
   //Registra la plataforma LTI
   await lti.registerPlatform({
