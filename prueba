@@ -1,10 +1,15 @@
 FLUJO DE ENLAZAR TAREA
 -Crear tarea en github Classroom
 -Crear tarea en Moodle
+-Luego entrar a la tarea de moodle creada
 -Lo redirige a SAE e Inicia Sesion
+-Selecciona la ORG
 -Seleccionar la classroom 
 -Seleccionar la tarea que se encuentra disponible para enlazar dar clic en "Conectar"
 -Si selecciona una que no esta disponible se lo indicara.
+-Le muestro la view de config de la tarea, modifica si el quiere
+-Luego dar clic en "Guardar"
+Listo ya tenemos una tarea enlazada
 
 
 FLUJO CONSULTAR TAREA YA ENLAZADA
@@ -27,6 +32,22 @@ FLUJO PARA CONSULTAR FEEDBACK
 -Si lo tiene le mostrara su nota y su retroalimentacion
 -Si no tiene le mostrara la URL de Invitacion
 
+Ingresa a la tarea de moodle
+
+Estudiante ya esta registrado en SAE?
+
+NO -> Lo envio al Login de SAE, luego vuelva
+SI -> Debo verificar si la tarea ya fue enlazada por el catedratico
+
+Si no ha sido enlazada debo enviarlo a url de "Tarea no disponible"
+
+Si ya ha sido enlazado debo enviarlo a irl de "url Invitacion" para generar repositorio de github
+
+Estudiante se le genera el repo y sube sus cambios
+
+Luego verifica si el estudiante de esa tarea ya posee una retroalimentacion, si ya posee le muestra la url de Feedback en SAE
+
+Si no cuenta con retroalimentacion le mostrarala url de Invitacion, ya que se encuentra en espera
 
 
 
