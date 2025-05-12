@@ -69,6 +69,7 @@ export const setupLti = async () => {
           orgName,
           idtaskmoodle,
           issuerM,
+          token,
           isMoodle,
         };
 
@@ -153,8 +154,7 @@ export const setupLti = async () => {
 
   const app = lti.app;
   app.post('/send-grades', async (req, res) => {
-    const { assignmentId, issuer } = req.body;
-    const token = await lti.getToken({ iss: issuer, contextId: assignmentId });
+    const { assignmentId, issuer, token } = req.body;
   
     if (!token) return res.status(401).json({ message: 'Token no válido' });
   
