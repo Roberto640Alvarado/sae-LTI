@@ -106,6 +106,52 @@ export const setupLti = async () => {
 
         console.log('Resultado de notas:', resultadoNotas);
 
+        //Enviamos el resultado de las notas a la plataforma
+        //Paso 1: obtener el lineitem ID
+        let lineItemId = token.platformContext.endpoint.lineitem;
+    
+        if (!lineItemId) {
+          const response = await lti.Grade.getLineItems(token, { resourceLinkId: true });
+          const lineItems = response?.lineItems || [];
+    
+          if (lineItems.length === 0) {
+            //Crear line item si no hay ninguno
+            console.log('🛠️ Creando nuevo line item...');
+            const newLineItem = {
+              scoreMaximum: 10,
+              label: 'Nota automática',
+              tag: 'autograde',
+              resourceLinkId: token.platformContext.resource.id
+            };
+            const created = await lti.Grade.createLineItem(token, newLineItem);
+            lineItemId = created.id;
+          } else {
+            lineItemId = lineItems[0].id;
+          }
+        }
+
+        //Paso 2: enviar las calificaciones
+        console.log('Enviando calificaciones...');
+        for (const estudiante of resultadoNotas) {
+          const average = (estudiante.gradeAction + estudiante.gradeFeedback) / 2;
+        
+          const score = {
+            userId: estudiante.userId,
+            scoreGiven: average,
+            scoreMaximum: 10,
+            activityProgress: 'Completed',
+            gradingProgress: 'FullyGraded',
+          };
+        
+          try {
+            await lti.Grade.submitScore(token, lineItemId, score);
+            console.log(`✅ Nota enviada para ${estudiante.email}: ${average}`);
+          } catch (error) {
+            console.error(`❌ Error al enviar nota para ${estudiante.email}:`, error.message);
+          }
+        }
+        
+
         const idclassroom = taskLink?.idClassroom; //Id classroom
         const idtaskgithub = taskLink?.idTaskGithubClassroom; //Id tarea github
         const orgId = taskLink?.orgId; //Id de la organizacion
