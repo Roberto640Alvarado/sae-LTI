@@ -54,107 +54,120 @@ export const setupLti = async () => {
           issuer,
         ); //info de la tarea enlazada
 
-        //Obtenemos los miembros de la clase
-        const membersUrl =
-          token.platformContext.namesRoles?.context_memberships_url;
-        const members = await lti.NamesAndRoles.getMembers(token, membersUrl);
+        const purpose = req.query.purpose;
+        if (purpose === 'sendgrades') {
+          console.log('📤 Relanzamiento LTI para envío manual de notas');
 
-        //Filtramos los estudiantes
-        const estudiantes = members.members.filter((user: any) =>
-          user.roles.some(
-            (role: string) => role.endsWith('#Learner') || role === 'Learner',
-          ),
-        );
+          //Obtenemos los miembros de la clase
+          const membersUrl =
+            token.platformContext.namesRoles?.context_memberships_url;
+          const members = await lti.NamesAndRoles.getMembers(token, membersUrl);
 
-        const idTareaLTI = taskLink?.idTaskGithubClassroom;
-        if (!idTareaLTI) {
-          throw new Error('idTaskGithubClassroom no está definido en taskLink');
-        }
-        console.log('id de Tarea de Github:', idTareaLTI);
+          //Filtramos los estudiantes
+          const estudiantes = members.members.filter((user: any) =>
+            user.roles.some(
+              (role: string) => role.endsWith('#Learner') || role === 'Learner',
+            ),
+          );
 
-        const resultadoNotas: any[] = [];
-
-        for (const estudiante of estudiantes) {
-          let gradeAction = 0;
-          let gradeFeedback = 0;
-
-          try {
-            const feedback = await ltiService.getFeedbackByEmailAndIdTaskGithub(
-              estudiante.email,
-              idTareaLTI,
+          const idTareaLTI = taskLink?.idTaskGithubClassroom;
+          if (!idTareaLTI) {
+            throw new Error(
+              'idTaskGithubClassroom no está definido en taskLink',
             );
+          }
+          console.log('id de Tarea de Github:', idTareaLTI);
 
-            if (feedback && typeof feedback.gradeValue === 'number') {
-              gradeAction = feedback.gradeValue;
-              gradeFeedback = feedback.gradeFeedback;
+          const resultadoNotas: any[] = [];
+
+          for (const estudiante of estudiantes) {
+            let gradeAction = 0;
+            let gradeFeedback = 0;
+
+            try {
+              const feedback =
+                await ltiService.getFeedbackByEmailAndIdTaskGithub(
+                  estudiante.email,
+                  idTareaLTI,
+                );
+
+              if (feedback && typeof feedback.gradeValue === 'number') {
+                gradeAction = feedback.gradeValue;
+                gradeFeedback = feedback.gradeFeedback;
+              }
+            } catch (error) {
+              console.warn(
+                `No se encontró feedback para ${estudiante.email}, asignando nota 0`,
+              );
             }
-          } catch (error) {
-            console.warn(
-              `No se encontró feedback para ${estudiante.email}, asignando nota 0`,
-            );
-          }
 
-          resultadoNotas.push({
-            userId: estudiante.user_id,
-            email: estudiante.email,
-            gradeAction,
-            gradeFeedback,
-          });
-        }
+            resultadoNotas.push({
+              userId: estudiante.user_id,
+              email: estudiante.email,
+              gradeAction,
+              gradeFeedback,
+            });
 
-        console.log('Resultado de notas:', resultadoNotas);
+            console.log('Resultado de notas:', resultadoNotas);
 
-        //Enviamos el resultado de las notas a la plataforma
-        //Paso 1: obtener el lineitem ID
-        let lineItemId = token.platformContext.endpoint.lineitem;
+            //Enviamos el resultado de las notas a la plataforma
+            //Paso 1: obtener el lineitem ID
+            let lineItemId = token.platformContext.endpoint.lineitem;
 
-        if (!lineItemId) {
-          const response = await lti.Grade.getLineItems(token, {
-            resourceLinkId: true,
-          });
-          const lineItems = response?.lineItems || [];
+            if (!lineItemId) {
+              const response = await lti.Grade.getLineItems(token, {
+                resourceLinkId: true,
+              });
+              const lineItems = response?.lineItems || [];
 
-          if (lineItems.length === 0) {
-            //Crear line item si no hay ninguno
-            console.log('🛠️ Creando nuevo line item...');
-            const newLineItem = {
-              scoreMaximum: 10,
-              label: 'Nota automática',
-              tag: 'autograde',
-              resourceLinkId: token.platformContext.resource.id,
-            };
-            const created = await lti.Grade.createLineItem(token, newLineItem);
-            lineItemId = created.id;
-          } else {
-            lineItemId = lineItems[0].id;
-          }
-        }
+              if (lineItems.length === 0) {
+                //Crear line item si no hay ninguno
+                console.log('🛠️ Creando nuevo line item...');
+                const newLineItem = {
+                  scoreMaximum: 10,
+                  label: 'Nota automática',
+                  tag: 'autograde',
+                  resourceLinkId: token.platformContext.resource.id,
+                };
+                const created = await lti.Grade.createLineItem(
+                  token,
+                  newLineItem,
+                );
+                lineItemId = created.id;
+              } else {
+                lineItemId = lineItems[0].id;
+              }
+            }
 
-        console.log('Line item ID:', lineItemId);
-        console.log('Token:', token);
+            console.log('Line item ID:', lineItemId);
+            console.log('Token:', token);
 
-        //Paso 2: enviar las calificaciones
-        console.log('Enviando calificaciones...');
-        for (const estudiante of resultadoNotas) {
-          const average =
-            (estudiante.gradeAction + estudiante.gradeFeedback) / 2;
+            //Paso 2: enviar las calificaciones
+            console.log('Enviando calificaciones...');
+            for (const estudiante of resultadoNotas) {
+              const average =
+                (estudiante.gradeAction + estudiante.gradeFeedback) / 2;
 
-          const score = {
-            userId: estudiante.userId,
-            scoreGiven: average,
-            scoreMaximum: 10,
-            activityProgress: 'Completed',
-            gradingProgress: 'FullyGraded',
-          };
+              const score = {
+                userId: estudiante.userId,
+                scoreGiven: average,
+                scoreMaximum: 10,
+                activityProgress: 'Completed',
+                gradingProgress: 'FullyGraded',
+              };
 
-          try {
-            await lti.Grade.submitScore(token, lineItemId, score);
-            console.log(`✅ Nota enviada para ${estudiante.email}: ${average}`);
-          } catch (error) {
-            console.error(
-              `❌ Error al enviar nota para ${estudiante.email}:`,
-              error.message,
-            );
+              try {
+                await lti.Grade.submitScore(token, lineItemId, score);
+                console.log(
+                  `✅ Nota enviada para ${estudiante.email}: ${average}`,
+                );
+              } catch (error) {
+                console.error(
+                  `❌ Error al enviar nota para ${estudiante.email}:`,
+                  error.message,
+                );
+              }
+            }
           }
         }
 
@@ -249,7 +262,6 @@ export const setupLti = async () => {
   const port = parseInt(process.env.PORT || '3005', 10);
   await lti.deploy({ port });
   console.log(`✓ LTI escuchando en el puerto ${port}`);
-
 
   //Registra la plataforma LTI
   await lti.registerPlatform({
