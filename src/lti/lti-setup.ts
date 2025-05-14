@@ -130,6 +130,9 @@ export const setupLti = async () => {
           }
         }
 
+        console.log('Line item ID:', lineItemId);
+        console.log('Token:', token);
+
         //Paso 2: enviar las calificaciones
         console.log('Enviando calificaciones...');
         for (const estudiante of resultadoNotas) {
