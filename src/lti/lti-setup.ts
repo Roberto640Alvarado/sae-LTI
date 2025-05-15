@@ -177,6 +177,7 @@ export const setupLti = async () => {
         const orgId = taskLink?.orgId; //Id de la organizacion
         const orgName = taskLink?.orgName; //Nombre de la organizacion
         const idtaskmoodle = taskLink?.idTaskMoodle; //Id tarea moodle
+        const modIdMoodle = modId; //Id de la tarea moodle
         const payload = {
           idclassroom,
           idtaskgithub,
@@ -184,7 +185,7 @@ export const setupLti = async () => {
           orgName,
           idtaskmoodle,
           isMoodle,
-          modId,
+          modIdMoodle,
         };
 
         const tokenM = jwtService.generateToken(payload, '1h');
