@@ -41,11 +41,10 @@ export const setupLti = async () => {
     const isStudent = roles.some((r) => r.includes('#Learner'));
     const isMoodle = true;
 
-    const modId = token.platformContext?.custom?.modid;
     const purpose = token.platformContext?.custom?.purpose;
-
-    console.log('modid recibido desde Moodle:', modId);
     console.log('purpose recibido desde Moodle:', purpose);
+    const cmid = token.platformContext?.custom?.cmid;
+    console.log('CMID:', cmid); // → Debería ser "48"
 
     console.log('Token:', token);
     //VALIDACIONES
