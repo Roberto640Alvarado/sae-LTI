@@ -41,6 +41,7 @@ export const setupLti = async () => {
     const isStudent = roles.some((r) => r.includes('#Learner'));
     const isMoodle = true;
 
+    console.log('Token:', token);
     //VALIDACIONES
 
     if (isInstructor || isAdmin) {
@@ -54,7 +55,7 @@ export const setupLti = async () => {
           issuer,
         ); //info de la tarea enlazada
 
-        const purpose = req.query.purpose;
+        const purpose = token.platformContext?.custom?.purpose;
         if (purpose === 'sendgrades') {
           console.log('📤 Relanzamiento LTI para envío manual de notas');
 
@@ -138,9 +139,6 @@ export const setupLti = async () => {
                 lineItemId = lineItems[0].id;
               }
             }
-
-            console.log('Line item ID:', lineItemId);
-            console.log('Token:', token);
 
             //Paso 2: enviar las calificaciones
             console.log('Enviando calificaciones...');
