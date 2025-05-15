@@ -41,8 +41,11 @@ export const setupLti = async () => {
     const isStudent = roles.some((r) => r.includes('#Learner'));
     const isMoodle = true;
 
-    const referer = req.headers.referer;
-    const modId = referer?.match(/id=(\d+)/)?.[1];
+    const modId = token.platformContext?.custom?.modid;
+    const purpose = token.platformContext?.custom?.purpose;
+
+    console.log('modid recibido desde Moodle:', modId);
+    console.log('purpose recibido desde Moodle:', purpose);
 
     console.log('Token:', token);
     //VALIDACIONES
@@ -58,7 +61,6 @@ export const setupLti = async () => {
           issuer,
         ); //info de la tarea enlazada
 
-        const purpose = token.platformContext?.custom?.purpose;
         if (purpose === 'sendgrades') {
           console.log('📤 Relanzamiento LTI para envío manual de notas');
 
