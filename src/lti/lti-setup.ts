@@ -41,6 +41,9 @@ export const setupLti = async () => {
     const isStudent = roles.some((r) => r.includes('#Learner'));
     const isMoodle = true;
 
+    const referer = req.headers.referer;
+    const modId = referer?.match(/id=(\d+)/)?.[1];
+
     console.log('Token:', token);
     //VALIDACIONES
 
@@ -181,6 +184,7 @@ export const setupLti = async () => {
           orgName,
           idtaskmoodle,
           isMoodle,
+          modId,
         };
 
         const tokenM = jwtService.generateToken(payload, '1h');
