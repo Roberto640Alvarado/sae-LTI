@@ -26,7 +26,9 @@ export const setupLti = async () => {
   console.log('Conectado a MongoDB');
 
   lti.onConnect(async (token, req, res) => {
+    const cmid = req.headers.referer?.match(/id=(\d+)/)?.[1];
     const ltiService = new LtiValidationService();
+    console.log('cmid:', cmid);
     //console.log('Token:', token);
     const name = token.userInfo?.name || 'Sin nombre';
     const email = token.userInfo?.email || 'Sin email';
